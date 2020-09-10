@@ -8,6 +8,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     car.classList.add('car');
 
+    const MAX_ENEMY = 2;
     const keys = {
         ArrowUp: false,
         ArrowDown: false,
@@ -28,6 +29,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     function startGame() {
         start.classList.add('hide');
+        
 
         for (let i = 0; i < getQualitityElements(100); i++) {
             const line = document.createElement('div');
@@ -40,7 +42,8 @@ window.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < getQualitityElements(100 * setting.traffic); i++) {
             const enemy = document.createElement('div');
             enemy.classList.add('enemy');
-            enemy.style.background = `url('/image/enemy2.png') center / cover no-repeat`;
+            let randomEnemy = Math.floor(Math.random() * MAX_ENEMY);
+            enemy.style.background = `url('/image/enemy${randomEnemy + 1}.png') center / cover no-repeat`;
             enemy.y = 100 * setting.traffic * (i + 1);
             enemy.style.top = enemy.y + 'px';
             console.log(enemy.style.top);
@@ -49,6 +52,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }
 
         setting.start = true;
+        setting.score = 0;
         requestAnimationFrame(playGame);
         gameArea.append(car);
         setting.x = car.offsetLeft;
@@ -58,6 +62,9 @@ window.addEventListener('DOMContentLoaded', () => {
     function playGame() {
         
         if (setting.start) {
+            score.textContent = setting.score;
+            
+            setting.score += setting.speed;
             moveRoad();
             moveEnemy();
             requestAnimationFrame(playGame);
@@ -84,13 +91,18 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     function runGame(event) {
-        event.preventDefault();
-        keys[event.key] = true;
+        if (keys.hasOwnProperty(event.key)) {
+            event.preventDefault();
+            keys[event.key] = true;
+        }
     }
 
     function stopGame(event) {
-        event.preventDefault();
-        keys[event.key] = false;
+        if (keys.hasOwnProperty(event.key)) {
+            event.preventDefault();
+            keys[event.key] = false;
+        }    
+        
     }
 
     function getQualitityElements(height) {
@@ -113,6 +125,15 @@ window.addEventListener('DOMContentLoaded', () => {
     function moveEnemy() {
         let enemies = document.querySelectorAll('.enemy');
         enemies.forEach(enemy => {
+            let carRect = car.getBoundingClientRect();
+            let enemyRect = enemy.getBoundingClientRect();
+
+            if (carRect.rignt >= enemyRect.left &&
+                carRect.top <= enemyRect.bottom &&
+                carRect.left <= enemyRect.right &&
+                carRect.bottom >= enemyRect.top) {
+                setting.start = false;
+            }
             enemy.y += setting.speed / 2;
             enemy.style.top = enemy.y + 'px';
 
@@ -123,4 +144,4 @@ window.addEventListener('DOMContentLoaded', () => {
             
         }); 
     }
-});
+})
